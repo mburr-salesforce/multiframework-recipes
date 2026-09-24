@@ -130,12 +130,11 @@ describe('RouteParametersDetail', () => {
     vi.clearAllMocks();
   });
 
-  // RouteParametersDetail now reads its data via useLoaderData()/<Await>,
-  // which only exist inside a data router — a bare <MemoryRouter><Routes>
-  // tree (no loader support) won't provide that context. createMemoryRouter
-  // + RouterProvider is the test equivalent of wiring the real accountLoader
-  // into routes.tsx, with the :accountId segment resolved from the URL. This
-  // is the React equivalent of emitting a CurrentPageReference with
+  // RouteParametersDetail reads its data via useLoaderData()/<Await>, which
+  // only exist inside a data router. createMemoryRouter + RouterProvider is
+  // the test equivalent of wiring the real accountLoader into routes.tsx,
+  // with the :accountId segment resolved from the URL. This is the React
+  // equivalent of emitting a CurrentPageReference with
   // { attributes: { recordId: '001' } } via a wire adapter mock.
   function renderDetail(accountId: string) {
     const router = createMemoryRouter(

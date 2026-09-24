@@ -204,12 +204,12 @@ async function fetchAccount(accountId: string): Promise<AccountDetail> {
  * Route loader for /route-parameters/:accountId.
  *
  * The `account` value is a Promise that is returned WITHOUT awaiting it here.
- * That's the key difference from a blocking loader: React Router starts this
+ * Because the loader doesn't block on the Promise, React Router starts this
  * navigation and renders <RouteParametersDetail /> immediately (nav, layout,
  * "Back to list" link, etc. are never held up), and only the account panel
  * itself waits — via <Suspense>/<Await> below — for the GraphQL call to
- * resolve. Awaiting the promise here would make the whole transition block
- * until data arrives, same as the previous useEffect approach.
+ * resolve. Awaiting the promise here instead would make the whole transition
+ * block until the data arrives.
  */
 export function accountLoader({ params }: LoaderFunctionArgs) {
   return { account: fetchAccount(params.accountId!) };
