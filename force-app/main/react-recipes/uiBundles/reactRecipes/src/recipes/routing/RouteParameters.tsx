@@ -13,9 +13,9 @@
  * is React Router's deferred-data pattern for non-blocking loaders.
  *
  * LWC equivalent: read the record ID from @wire(CurrentPageReference) via
- * pageRef.state.recordId, then fetch async without blocking render — akin to
- * an imperative Apex call that populates a template `if:true` block once it
- * resolves, rather than a blocking @wire(getRecord).
+ * pageRef.state.recordId, then use @wire(graphql) to request the data
+ * asynchronously — the component renders immediately and a template
+ * `if:true` block fills in once the wire resolves.
  *
  * Click an Account name to navigate to /route-parameters/:accountId
  * and load that record's detail view.
