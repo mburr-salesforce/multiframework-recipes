@@ -175,8 +175,15 @@ interface AccountDetail {
   website: string | null;
 }
 
-/** Runs the actual GraphQL fetch — shared by the loader below. */
-async function fetchAccount(accountId: string): Promise<AccountDetail> {
+/**
+ * Runs the actual GraphQL fetch — shared by the loader below.
+ *
+ * Returns `null` (rather than throwing) when the query succeeds but no
+ * matching Account was returned. That way "no record found" is a normal
+ * resolved value the render tree can distinguish from an actual request
+ * failure, so we can show "Not found." instead of the generic error state.
+ */
+async function fetchAccount(accountId: string): Promise<AccountDetail | null> {
   const sdk = await createDataSDK();
   const result = await sdk.graphql?.query<DetailResponse>({
     query: DETAIL_QUERY,
@@ -190,7 +197,7 @@ async function fetchAccount(accountId: string): Promise<AccountDetail> {
   }
 
   const node = result?.data?.uiapi?.query?.Account?.edges?.[0]?.node;
-  if (!node) throw new Error('Not found.');
+  if (!node) return null;
 
   return {
     name: node.Name?.value ?? 'Unknown',
@@ -217,7 +224,9 @@ export function accountLoader({ params }: LoaderFunctionArgs) {
 
 /** Detail route — reads :accountId from the URL via the loader, then streams in that record */
 export function RouteParametersDetail() {
-  const { account } = useLoaderData() as { account: Promise<AccountDetail> };
+  const { account } = useLoaderData() as {
+    account: Promise<AccountDetail | null>;
+  };
 
   return (
     <div>
@@ -232,28 +241,32 @@ export function RouteParametersDetail() {
           resolve={account}
           errorElement={<p className="text-destructive">Request failed</p>}
         >
-          {(resolved: AccountDetail) => (
-            <div className="rounded-md bg-muted p-4 mt-2">
-              <p className="text-lg font-semibold">{resolved.name}</p>
-              {resolved.industry && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {resolved.industry}
-                </p>
-              )}
-              {resolved.phone && (
-                <p className="text-xs mt-1">
-                  <a href={`tel:${resolved.phone}`} className="text-xs text-primary hover:underline">{resolved.phone}</a>
-                </p>
-              )}
-              {resolved.website && (
-                <p className="text-xs mt-1">
-                  <a href={resolved.website} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
-                    {resolved.website}
-                  </a>
-                </p>
-              )}
-            </div>
-          )}
+          {(resolved: AccountDetail | null) =>
+            resolved === null ? (
+              <p className="text-muted-foreground">Not found.</p>
+            ) : (
+              <div className="rounded-md bg-muted p-4 mt-2">
+                <p className="text-lg font-semibold">{resolved.name}</p>
+                {resolved.industry && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {resolved.industry}
+                  </p>
+                )}
+                {resolved.phone && (
+                  <p className="text-xs mt-1">
+                    <a href={`tel:${resolved.phone}`} className="text-xs text-primary hover:underline">{resolved.phone}</a>
+                  </p>
+                )}
+                {resolved.website && (
+                  <p className="text-xs mt-1">
+                    <a href={resolved.website} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+                      {resolved.website}
+                    </a>
+                  </p>
+                )}
+              </div>
+            )
+          }
         </Await>
       </Suspense>
     </div>

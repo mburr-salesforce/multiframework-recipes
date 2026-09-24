@@ -46,6 +46,19 @@ const LIST_SUCCESS = {
   errors: [],
 };
 
+const DETAIL_EMPTY = {
+  data: {
+    uiapi: {
+      query: {
+        Account: {
+          edges: [],
+        },
+      },
+    },
+  },
+  errors: [],
+};
+
 const DETAIL_SUCCESS = {
   data: {
     uiapi: {
@@ -175,6 +188,14 @@ describe('RouteParametersDetail', () => {
     expect(
       screen.getByRole('link', { name: /back to list/i })
     ).toHaveAttribute('href', '/routing');
+  });
+
+  it('renders "Not found." when the GraphQL query returns no records', async () => {
+    mockGraphql.mockResolvedValue(DETAIL_EMPTY);
+    renderDetail('999');
+    expect(await screen.findByText('Not found.')).toBeInTheDocument();
+    // Sanity-check we're not falling through to the generic error state.
+    expect(screen.queryByText('Request failed')).not.toBeInTheDocument();
   });
 
 });
